@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Api rest radom Cats</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <h1>Cats</h1>
+    <span id="error"></span>
+    <section
+      id="randomCats"
+      style="display: flex; flex-direction: column; gap: 15px"
+    >
+      <h2>Random Cats</h2>
+      <button style="width: 50%" onclick="loadRandomImg()">
+        Click to see more pictures of cats
+      </button>
+    </section>
+    <section id="favouriteCats">
+      <h2>Favorite Cats</h2>
+      <button style="width: 50%">Delete cat to favorites</button>
+    </section>
+    <script src="./main.js"></script>
+  </body>
+</html>

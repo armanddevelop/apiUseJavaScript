@@ -1,0 +1,9 @@
+.save-cat-button {
+  width: 50%;
+  cursor: pointer;
+  border: 1px solid black;
+  border-radius: 5px;
+}
+#error {
+  color: red;
+}
