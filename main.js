@@ -3,7 +3,34 @@ const API_KEY =
   "live_DU1HvYLP8ygDuF7cCzESx2BNQKzKeMgxfltJWAB4w2oikEOp0r99zslBvlZSeij7";
 const baseUrl = "https://api.thecatapi.com";
 const errorElement = document.getElementById("error");
+const successElement = document.getElementById("success");
+const sectionRandomCats = document.getElementById("randomCats");
+const sectionFavCats = document.getElementById("favouriteCats");
 
+const createElementDom = ({
+  url,
+  elementLoad,
+  className,
+  text,
+  id,
+  callBack,
+}) => {
+  const articleElement = document.createElement("article");
+  const img = document.createElement("img");
+  const button = document.createElement("button");
+  img.src = url;
+  img.id = id;
+  img.width = "150";
+  button.addEventListener("click", () => {
+    const imgId = document.getElementById(id).id;
+    callBack(imgId);
+  });
+  button.innerText = text;
+  button.className = className;
+  elementLoad.appendChild(articleElement);
+  articleElement.appendChild(img);
+  articleElement.appendChild(button);
+};
 const fetchCats = async (limit = 1) => {
   try {
     const data = await fetch(
@@ -13,6 +40,14 @@ const fetchCats = async (limit = 1) => {
     return resp;
   } catch (error) {
     console.error("shit happens :(", e);
+    errorElement.innerText = ":( shit happens try again later, please";
+  }
+};
+const removeFavourites = async (id) => {
+  try {
+    console.log("hola desde deleteFavorites", id);
+  } catch (error) {
+    console.error("[shit happens in removeFavouritessError]: ", error);
     errorElement.innerText = ":( shit happens try again later, please";
   }
 };
@@ -26,6 +61,20 @@ const fetchFavourites = async (limit = 1) => {
     });
     const resp = await data.json();
     console.log("fetchFavorites ", resp);
+    resp.forEach((element) => {
+      const {
+        image: { url },
+        image_id,
+      } = element;
+      createElementDom({
+        url,
+        id: image_id,
+        elementLoad: sectionFavCats,
+        text: "Delete cat to favorites",
+        className: "delete-cat-button",
+        callBack: removeFavourites,
+      });
+    });
   } catch (error) {
     console.error("[shit happens in fetchFavouritesError]: ", error);
     errorElement.innerText = ":( shit happens try again later, please";
@@ -44,8 +93,13 @@ const saveFavourites = async (idImg) => {
       },
       body: saveData,
     });
-    const resp = await save.json();
-    console.log(resp);
+    const { message } = await save.json();
+    if (message === "SUCCESS") {
+      successElement.innerText = message;
+      setTimeout(() => {
+        successElement.innerText = "";
+      }, 4000);
+    }
   } catch (error) {
     console.error("[shit happens in saveFavouritesError]:", error);
     errorElement.innerText = ":( shit happens try again later, please";
@@ -56,20 +110,14 @@ const loadRandomImg = async () => {
     const data = await fetchCats(3);
     data.forEach((element) => {
       console.log("loadRandomImg ", element);
-      const img = document.createElement("img");
-      img.width = "150";
-      img.src = element.url;
-      img.id = element.id;
-      const section = document.getElementById("randomCats");
-      const button = document.createElement("button");
-      button.innerText = "Save cat in favorites";
-      button.className = "save-cat-button";
-      button.addEventListener("click", () => {
-        const imgId = document.getElementById(element.id).id;
-        saveFavourites(imgId);
+      createElementDom({
+        url: element.url,
+        id: element.id,
+        text: "Save cat in favorites",
+        className: "save-cat-button",
+        elementLoad: sectionRandomCats,
+        callBack: saveFavourites,
       });
-      section.appendChild(img);
-      section.appendChild(button);
     });
   } catch (e) {
     console.error("shit happens :(", e);
