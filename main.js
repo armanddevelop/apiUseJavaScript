@@ -6,7 +6,12 @@ const errorElement = document.getElementById("error");
 const successElement = document.getElementById("success");
 const sectionRandomCats = document.getElementById("randomCats");
 const sectionFavCats = document.getElementById("favouriteCats");
-
+const instanceApi = axios.create({
+  baseURL: baseUrl,
+  headers: {
+    "x-api-key": API_KEY,
+  },
+});
 const createElementDom = ({
   url,
   elementLoad,
@@ -33,25 +38,19 @@ const createElementDom = ({
 };
 const fetchCats = async (limit = 1) => {
   try {
-    const data = await fetch(
-      `${baseUrl}/v1/images/search?limit=${limit}&api_key=${API_KEY}`
-    );
-    const resp = await data.json();
-    return resp;
+    const { data } = await instanceApi.get(`/v1/images/search?limit=${limit}`);
+    return data;
   } catch (error) {
     console.error("shit happens :(", e);
     errorElement.innerText = ":( shit happens try again later, please";
+    return [];
   }
 };
 const removeFavourites = async (favouriteId) => {
   try {
-    const data = await fetch(`${baseUrl}/v1/favourites/${favouriteId}`, {
-      method: "DELETE",
-      headers: {
-        "x-api-key": API_KEY,
-      },
-    });
-    const { message } = await data.json();
+    const {
+      data: { message },
+    } = await instanceApi.delete(`/v1/favourites/${favouriteId}`);
     if (message === "SUCCESS") {
       successElement.innerText = "Cat remove from Favourites";
       setTimeout(() => {
@@ -65,16 +64,10 @@ const removeFavourites = async (favouriteId) => {
     errorElement.innerText = ":( shit happens try again later, please";
   }
 };
-const fetchFavourites = async (limit = 1) => {
+const fetchFavourites = async () => {
   try {
-    const data = await fetch(`${baseUrl}/v1/favourites`, {
-      headers: {
-        "content-type": "application/json",
-        "x-api-key": API_KEY,
-      },
-    });
-    const resp = await data.json();
-    resp.forEach((element) => {
+    const { data } = await instanceApi.get(`/v1/favourites`);
+    data.forEach((element) => {
       const {
         image: { url },
         id,
@@ -95,18 +88,11 @@ const fetchFavourites = async (limit = 1) => {
 };
 const saveFavourites = async (idImg, url) => {
   try {
-    const saveData = JSON.stringify({
+    const {
+      data: { message, id },
+    } = await instanceApi.post("/v1/favourites", {
       image_id: idImg,
     });
-    const save = await fetch(`${baseUrl}/v1/favourites`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": API_KEY,
-      },
-      body: saveData,
-    });
-    const { message, id } = await save.json();
     if (message === "SUCCESS") {
       successElement.innerText = message;
       setTimeout(() => {
@@ -144,6 +130,25 @@ const loadRandomImg = async () => {
     console.error("shit happens :(", e);
   }
 };
-
+const uploadPhoto = async () => {
+  try {
+    const form = document.getElementById("uploadForm");
+    const formData = new FormData(form);
+    const { data } = await instanceApi.post(`/v1/images/upload`, formData);
+    const { approved, id, url } = data;
+    if (approved === 1) {
+      successElement.innerText = "Cat uploaded";
+      setTimeout(() => {
+        successElement.innerText = "";
+      }, 4000);
+      saveFavourites(id, url);
+    } else {
+      errorElement.innerText = ":( shit happens try again later, please";
+    }
+  } catch (error) {
+    console.error("[shit happens in uploadPhotoError]:", error);
+    errorElement.innerText = ":( shit happens try again later, please";
+  }
+};
 loadRandomImg();
 fetchFavourites();
